@@ -8,9 +8,6 @@ use App\Api\V2\Repositories\Interfaces\AccessTokenRepositoryInterface;
 use App\Api\V2\Repositories\Interfaces\ClaimRepositoryInterface;
 use App\Api\V2\ResponseTypes\BearerTokenResponse;
 use App\Api\V2\Session;
-use DateInterval;
-use DateTime;
-use DateTimeImmutable;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
@@ -20,31 +17,18 @@ use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Class PasswordGrant
- * @package App\Api\V2\Grant
+ * Class PasswordGrant.
  */
 class PasswordGrant extends \League\OAuth2\Server\Grant\PasswordGrant
 {
     use OIDCTrait;
 
-    /**
-     * @var DateInterval
-     */
-    protected DateInterval $authCodeTTL;
+    protected \DateInterval $authCodeTTL;
 
-    /**
-     * @var DateInterval
-     */
-    protected DateInterval $idTokenTTL;
+    protected \DateInterval $idTokenTTL;
 
-    /**
-     * @var Session
-     */
     protected Session $session;
 
-    /**
-     * @var ClaimRepositoryInterface
-     */
     protected ClaimRepositoryInterface $claimRepository;
 
     /**
@@ -52,26 +36,15 @@ class PasswordGrant extends \League\OAuth2\Server\Grant\PasswordGrant
      */
     protected $accessTokenRepository;
 
-    /**
-     * @var UserEntityInterface|null
-     */
     protected ?UserEntityInterface $user;
 
-    /**
-     * @param UserRepositoryInterface $userRepository
-     * @param RefreshTokenRepositoryInterface $refreshTokenRepository
-     * @param ClaimRepositoryInterface $claimRepository
-     * @param Session $session
-     * @param DateInterval $authCodeTTL
-     * @param DateInterval $idTokenTTL
-     */
     public function __construct(
-        UserRepositoryInterface         $userRepository,
+        UserRepositoryInterface $userRepository,
         RefreshTokenRepositoryInterface $refreshTokenRepository,
-        ClaimRepositoryInterface        $claimRepository,
-        Session                         $session,
-        DateInterval                    $authCodeTTL,
-        DateInterval                    $idTokenTTL
+        ClaimRepositoryInterface $claimRepository,
+        Session $session,
+        \DateInterval $authCodeTTL,
+        \DateInterval $idTokenTTL
     ) {
         parent::__construct($userRepository, $refreshTokenRepository);
 
@@ -81,40 +54,30 @@ class PasswordGrant extends \League\OAuth2\Server\Grant\PasswordGrant
         $this->idTokenTTL = $idTokenTTL;
         $this->session = $session;
 
-
-        $this->setIssuer('https://' . SITE_SERVER_NAME);
+        $this->setIssuer('https://'.SITE_SERVER_NAME);
     }
 
-    /**
-     * @return string
-     */
     public function getIdentifier(): string
     {
         return 'password_oidc';
     }
 
-    /**
-     * @param ServerRequestInterface $request
-     * @return bool
-     */
     public function canRespondToAccessTokenRequest(ServerRequestInterface $request): bool
     {
-        $requestParameters = (array)$request->getParsedBody();
+        $requestParameters = (array) $request->getParsedBody();
         $scopes = ($requestParameters && isset($requestParameters['scope'])) ? $requestParameters['scope'] : null;
 
-        return ($scopes && in_array('openid', explode(' ', $scopes), true));
+        return $scopes && in_array('openid', explode(' ', $scopes), true);
     }
 
     /**
-     * {@inheritdoc}
-     * @throws OAuthServerException|\JsonException
+     * @throws \JsonException|OAuthServerException
      */
     public function respondToAccessTokenRequest(
         ServerRequestInterface $request,
-        ResponseTypeInterface  $responseType,
-        DateInterval           $accessTokenTTL
+        ResponseTypeInterface $responseType,
+        \DateInterval $accessTokenTTL
     ): ResponseTypeInterface {
-
         /**
          * @var BearerTokenResponse $result
          */
@@ -128,11 +91,11 @@ class PasswordGrant extends \League\OAuth2\Server\Grant\PasswordGrant
         $idToken->setIssuer($this->getIssuer());
         $idToken->setSubject($this->user->getIdentifier());
         $idToken->setAudience($client->getIdentifier());
-        $idToken->setIdentified($client->getIdentifier() . $this->user->getIdentifier());
-        $idToken->setExpiration(DateTimeImmutable::createFromMutable((new DateTime())->add($this->idTokenTTL)));
-        $idToken->setIat(new DateTimeImmutable());
+        $idToken->setIdentified($client->getIdentifier().$this->user->getIdentifier());
+        $idToken->setExpiration(\DateTimeImmutable::createFromMutable((new \DateTime())->add($this->idTokenTTL)));
+        $idToken->setIat(new \DateTimeImmutable());
 
-        $idToken->setAuthTime(new DateTime());
+        $idToken->setAuthTime(new \DateTime());
         $idToken->setNonce($nonce);
 
         $result->setIdToken($idToken);
@@ -141,12 +104,7 @@ class PasswordGrant extends \League\OAuth2\Server\Grant\PasswordGrant
     }
 
     /**
-     * @param ServerRequestInterface $request
-     * @param ClientEntityInterface $client
-     *
-     * @return UserEntityInterface
      * @throws OAuthServerException
-     *
      */
     protected function validateUser(ServerRequestInterface $request, ClientEntityInterface $client): UserEntityInterface
     {
@@ -169,7 +127,7 @@ class PasswordGrant extends \League\OAuth2\Server\Grant\PasswordGrant
             $client
         );
 
-        if ($this->user instanceof UserEntityInterface === false) {
+        if (false === $this->user instanceof UserEntityInterface) {
             $this->getEmitter()->emit(new RequestEvent(RequestEvent::USER_AUTHENTICATION_FAILED, $request));
 
             throw OAuthServerException::invalidCredentials();

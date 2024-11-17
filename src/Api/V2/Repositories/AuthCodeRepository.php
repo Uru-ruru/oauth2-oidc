@@ -10,13 +10,11 @@ use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
 use Uru\BitrixModels\Exceptions\ExceptionFromBitrix;
 
 /**
- * Class AuthCodeRepository
- * @package App\Api\V2\Repositories
+ * Class AuthCodeRepository.
  */
 class AuthCodeRepository implements AuthCodeRepositoryInterface
 {
     /**
-     * {@inheritdoc}
      * @throws ExceptionFromBitrix
      */
     public function persistNewAuthCode(AuthCodeEntityInterface $authCodeEntity): bool
@@ -38,11 +36,13 @@ class AuthCodeRepository implements AuthCodeRepositoryInterface
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * {@inheritdoc}
+     * @param mixed $codeId
+     *
      * @throws ExceptionFromBitrix
      */
     public function revokeAuthCode($codeId): bool
@@ -51,30 +51,27 @@ class AuthCodeRepository implements AuthCodeRepositoryInterface
         if (OauthCodes::revokeUserCode($codeId)) {
             return true;
         }
+
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function isAuthCodeRevoked($codeId): bool
     {
         $code = OauthCodes::getCodeByIdentifier($codeId);
         if ($code) {
             return false; // Access code hasn't been revoked
         }
+
         return true;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getNewAuthCode()
+    public function getNewAuthCode(): AuthCodeEntity
     {
         $authCode = new AuthCodeEntity();
         if (user()) {
             $authCode->setUserIdentifier(user()->getId());
         }
+
         return $authCode;
     }
 }

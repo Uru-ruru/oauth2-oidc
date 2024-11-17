@@ -4,15 +4,13 @@ namespace App\Api\V2\Entities;
 
 use App\Api\V2\Entities\Interfaces\AccessTokenEntityInterface;
 use App\Models\User;
-use DateTimeImmutable;
 use Lcobucci\JWT\Token;
 use League\OAuth2\Server\Entities\Traits\AccessTokenTrait;
 use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\TokenEntityTrait;
 
 /**
- * Class AccessTokenEntity
- * @package App\Api\V2\Entities
+ * Class AccessTokenEntity.
  */
 class AccessTokenEntity implements AccessTokenEntityInterface
 {
@@ -20,22 +18,12 @@ class AccessTokenEntity implements AccessTokenEntityInterface
     use TokenEntityTrait;
     use EntityTrait;
 
-    /**
-     * @var string
-     */
     private string $email;
-    /**
-     * @var string
-     */
+
     private string $usertype;
-    /**
-     * @var array
-     */
+
     private array $claims = [];
 
-    /**
-     * @return string
-     */
     public function getEmail(): string
     {
         return $this->email;
@@ -49,20 +37,14 @@ class AccessTokenEntity implements AccessTokenEntityInterface
         $this->email = $email;
     }
 
-    /**
-     * @return string
-     */
     public function getUsertype(): string
     {
         return $this->usertype;
     }
 
-    /**
-     * @param User $user
-     */
     public function setUsertype(User $user): void
     {
-        $usertype = "Unknown";
+        $usertype = 'Unknown';
 
         if ($user->isPartner() || $user->isDeveloper()) {
             $usertype = 'Client';
@@ -83,9 +65,6 @@ class AccessTokenEntity implements AccessTokenEntityInterface
         $this->usertype = $usertype;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function setUserIdentifier($identifier): void
     {
         $this->userIdentifier = $identifier;
@@ -97,41 +76,13 @@ class AccessTokenEntity implements AccessTokenEntityInterface
     }
 
     /**
-     * Generate a JWT from the access token
-     *
-     * @return Token
-     */
-    private function convertToJWT(): Token
-    {
-        $this->initJwtConfiguration();
-
-        return $this->jwtConfiguration->builder()
-            ->permittedFor($this->getClient()->getIdentifier())
-            ->identifiedBy($this->getIdentifier())
-            ->issuedAt(new DateTimeImmutable())
-            ->canOnlyBeUsedAfter(new DateTimeImmutable())
-            ->expiresAt($this->getExpiryDateTime())
-            ->relatedTo((string)$this->getUserIdentifier())
-            ->withClaim('scopes', $this->getScopes())
-            ->withClaim('email', $this->getEmail())
-            ->withClaim('usertype', $this->getUsertype())
-            ->withClaim('claims', $this->getClaims())
-            ->getToken($this->jwtConfiguration->signer(), $this->jwtConfiguration->signingKey());
-    }
-
-    /**
      * Return an array of scopes associated with the token.
-     * @return array
      */
     public function getScopes(): array
     {
         return array_values($this->scopes);
     }
 
-    /**
-     * @param $claim
-     * @return void
-     */
     public function addClaim($claim): void
     {
         $this->claims[] = $claim;
@@ -143,5 +94,27 @@ class AccessTokenEntity implements AccessTokenEntityInterface
     public function getClaims(): array
     {
         return $this->claims;
+    }
+
+    /**
+     * Generate a JWT from the access token.
+     */
+    private function convertToJWT(): Token
+    {
+        $this->initJwtConfiguration();
+
+        return $this->jwtConfiguration->builder()
+            ->permittedFor($this->getClient()->getIdentifier())
+            ->identifiedBy($this->getIdentifier())
+            ->issuedAt(new \DateTimeImmutable())
+            ->canOnlyBeUsedAfter(new \DateTimeImmutable())
+            ->expiresAt($this->getExpiryDateTime())
+            ->relatedTo((string) $this->getUserIdentifier())
+            ->withClaim('scopes', $this->getScopes())
+            ->withClaim('email', $this->getEmail())
+            ->withClaim('usertype', $this->getUsertype())
+            ->withClaim('claims', $this->getClaims())
+            ->getToken($this->jwtConfiguration->signer(), $this->jwtConfiguration->signingKey())
+        ;
     }
 }

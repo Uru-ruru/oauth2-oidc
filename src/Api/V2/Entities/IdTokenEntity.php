@@ -3,17 +3,15 @@
 namespace App\Api\V2\Entities;
 
 use App\Api\V2\CryptKey;
-use DateTime;
-use DateTimeImmutable;
-use Lcobucci\JWT\Signer\Rsa\Sha256;
-use Lcobucci\JWT\Token\Plain;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Key\InMemory;
+use Lcobucci\JWT\Signer\Rsa\Sha256;
+use Lcobucci\JWT\Token\Plain;
 
 /**
- * Class IdTokenEntity
- * @package App\Api\V2\Entities
- * @link https://openid.net/specs/openid-connect-core-1_0.html
+ * Class IdTokenEntity.
+ *
+ * @see https://openid.net/specs/openid-connect-core-1_0.html
  */
 class IdTokenEntity
 {
@@ -21,48 +19,48 @@ class IdTokenEntity
      * REQUIRED. Issuer Identifier for the Issuer of the response.
      * The iss value is a case sensitive URL using the https scheme that contains scheme, host, and optionally,
      * port number and path components and no query or fragment components.
-     * @var string
      */
     protected string $issuer;
+
     /**
      * REQUIRED. Subject Identifier.
      * A locally unique and never reassigned identifier within the Issuer for the End-User, which is intended to be consumed by the Client, e.g.,
      * 24400320 or AItOawmwtWwcT0k51BayewNvutrJUqsvl6qs7A4. It MUST NOT exceed 255 ASCII characters in length.
      * The sub value is a case sensitive string.
-     * @var string
      */
     protected string $subject;
+
     /**
      * REQUIRED. Audience(s) that this ID Token is intended for.
      * It MUST contain the OAuth 2.0 client_id of the Relying Party as an audience value. It MAY also contain identifiers for other audiences.
      * In the general case, the aud value is an array of case sensitive strings. In the common special case when there is one audience,
      * the aud value MAY be a single case sensitive string.
-     * @var string
      */
     protected string $audience;
+
     /**
      * REQUIRED. Expiration time on or after which the ID Token MUST NOT be accepted for processing.
      * The processing of this parameter requires that the current date/time MUST be before the expiration date/time listed in the value.
      * Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew.
      * Its value is a JSON number representing the number of seconds from 1970-01-01T0:0:0Z as measured in UTC until the date/time.
      * See RFC 3339 [RFC3339] for details regarding date/times in general and UTC in particular.
-     * @var DateTimeImmutable
      */
-    protected DateTimeImmutable $expiration;
+    protected \DateTimeImmutable $expiration;
+
     /**
      * REQUIRED. Time at which the JWT was issued.
      * Its value is a JSON number representing the number of seconds from 1970-01-01T0:0:0Z as measured in UTC until the date/time.
-     * @var DateTimeImmutable
      */
-    protected DateTimeImmutable $iat; // Time at which the JWT was issued
+    protected \DateTimeImmutable $iat; // Time at which the JWT was issued
+
     /**
      * Time when the End-User authentication occurred.
      * Its value is a JSON number representing the number of seconds from 1970-01-01T0:0:0Z as measured in UTC until the date/time.
      * When a max_age request is made or when auth_time is requested as an Essential Claim, then this Claim is REQUIRED;
-     * otherwise, its inclusion is OPTIONAL. (The auth_time Claim semantically corresponds to the OpenID 2.0 PAPE [OpenID.PAPE] auth_time response parameter.)
-     * @var DateTime
+     * otherwise, its inclusion is OPTIONAL. (The auth_time Claim semantically corresponds to the OpenID 2.0 PAPE [OpenID.PAPE] auth_time response parameter.).
      */
-    protected DateTime $authTime;
+    protected \DateTime $authTime;
+
     /**
      * String value used to associate a Client session with an ID Token, and to mitigate replay attacks.
      * The value is passed through unmodified from the Authentication Request to the ID Token.
@@ -70,9 +68,9 @@ class IdTokenEntity
      * If present in the Authentication Request, Authorization Servers MUST include a nonce Claim in the ID Token with
      * the Claim Value being the nonce value sent in the Authentication Request. Authorization Servers SHOULD perform no other processing on nonce values used.
      * The nonce value is a case sensitive string.
-     * @var string|null
      */
     protected ?string $nonce;
+
     /**
      * OPTIONAL. Authentication Context Class Reference.
      * String specifying an Authentication Context Class Reference value that identifies the Authentication Context Class that the authentication performed satisfied.
@@ -82,9 +80,9 @@ class IdTokenEntity
      * (This corresponds to the OpenID 2.0 PAPE [OpenID.PAPE] nist_auth_level 0.) An absolute URI or an RFC 6711 [RFC6711] registered name SHOULD be used as the acr value;
      * registered names MUST NOT be used with a different meaning than that which is registered. Parties using this claim will need to agree upon the meanings of the values used,
      * which may be context-specific. The acr value is a case sensitive string.
-     * @var string|null
      */
     protected ?string $acr; // Authentication Context Class Reference
+
     /**
      * OPTIONAL. Authentication Methods References.
      * JSON array of strings that are identifiers for authentication methods used in the authentication.
@@ -92,41 +90,32 @@ class IdTokenEntity
      * The definition of particular values to be used in the amr Claim is beyond the scope of this specification.
      * Parties using this claim will need to agree upon the meanings of the values used, which may be context-specific.
      * The amr value is an array of case sensitive strings.
+     *
      * @var array|string[]
      */
     protected array $amr = []; // Authentication Methods References
+
     /**
      * OPTIONAL. Authorized party - the party to which the ID Token was issued.
      * If present, it MUST contain the OAuth 2.0 Client ID of this party.
      * This Claim is only needed when the ID Token has a single audience value and that audience is different than the authorized party.
      * It MAY be included even when the authorized party is the same as the sole audience.
      * The azp value is a case sensitive string containing a StringOrURI value.
-     * @var string|null
      */
     protected ?string $azp; // Authorized party
 
-    /**
-     * @var string
-     */
     protected string $identified;
 
-    /**
-     * @var array
-     */
     protected array $extra = [];
 
-    /**
-     *
-     */
     public function __construct()
     {
-        $this->iat = new DateTimeImmutable();
-        $this->authTime = new DateTime();
+        $this->iat = new \DateTimeImmutable();
+        $this->authTime = new \DateTime();
     }
 
     /**
      * @param CryptKey|\League\OAuth2\Server\CryptKey $privateKey
-     * @return Plain
      */
     public function convertToJWT($privateKey): Plain
     {
@@ -138,7 +127,7 @@ class IdTokenEntity
 
         $token = $config->builder()
             ->withHeader('kid', method_exists($privateKey, 'getKid') ? $privateKey->getKid() : CryptKey::generateKeyId())
-            ->issuedBy($this->getIssuer() ?? "https://" . SITE_SERVER_NAME)
+            ->issuedBy($this->getIssuer() ?? 'https://'.SITE_SERVER_NAME)
             ->withHeader('sub', $this->getSubject())
             ->relatedTo($this->getSubject())
             ->permittedFor($this->getAudience())
@@ -146,7 +135,8 @@ class IdTokenEntity
             ->issuedAt($this->getIat())
             ->identifiedBy($this->getIdentified() ?? '123')
             ->withClaim('auth_time', $this->getAuthTime()->getTimestamp())
-            ->withClaim('nonce', $this->getNonce());
+            ->withClaim('nonce', $this->getNonce())
+        ;
 
         foreach ($this->extra as $key => $value) {
             $token->withClaim($key, $value);
@@ -155,10 +145,8 @@ class IdTokenEntity
         return $token->getToken($config->signer(), $config->signingKey());
     }
 
-
     /**
-     * Get the value of subject
-     * @return string
+     * Get the value of subject.
      */
     public function getSubject(): string
     {
@@ -166,10 +154,9 @@ class IdTokenEntity
     }
 
     /**
-     * Set the value of subject
+     * Set the value of subject.
      *
-     * @param $subject
-     * @return  self
+     * @param mixed $subject
      */
     public function setSubject($subject): self
     {
@@ -179,8 +166,7 @@ class IdTokenEntity
     }
 
     /**
-     * Get the value of audience
-     * @return string
+     * Get the value of audience.
      */
     public function getAudience(): string
     {
@@ -188,10 +174,9 @@ class IdTokenEntity
     }
 
     /**
-     * Set the value of audience
+     * Set the value of audience.
      *
-     * @param $audience
-     * @return  self
+     * @param mixed $audience
      */
     public function setAudience($audience): self
     {
@@ -201,21 +186,17 @@ class IdTokenEntity
     }
 
     /**
-     * Get the value of expiration
-     * @return DateTimeImmutable
+     * Get the value of expiration.
      */
-    public function getExpiration(): DateTimeImmutable
+    public function getExpiration(): \DateTimeImmutable
     {
         return $this->expiration;
     }
 
     /**
-     * Set the value of expiration
-     *
-     * @param DateTimeImmutable $expiration
-     * @return  self
+     * Set the value of expiration.
      */
-    public function setExpiration(DateTimeImmutable $expiration): IdTokenEntity
+    public function setExpiration(\DateTimeImmutable $expiration): IdTokenEntity
     {
         $this->expiration = $expiration;
 
@@ -223,21 +204,17 @@ class IdTokenEntity
     }
 
     /**
-     * Get the value of iat
-     * @return DateTimeImmutable
+     * Get the value of iat.
      */
-    public function getIat(): DateTimeImmutable
+    public function getIat(): \DateTimeImmutable
     {
         return $this->iat;
     }
 
     /**
-     * Set the value of iat
-     *
-     * @param DateTimeImmutable $iat
-     * @return  self
+     * Set the value of iat.
      */
-    public function setIat(DateTimeImmutable $iat): self
+    public function setIat(\DateTimeImmutable $iat): self
     {
         $this->iat = $iat;
 
@@ -245,21 +222,17 @@ class IdTokenEntity
     }
 
     /**
-     * Get the value of authTime
-     * @return DateTime
+     * Get the value of authTime.
      */
-    public function getAuthTime(): DateTime
+    public function getAuthTime(): \DateTime
     {
         return $this->authTime;
     }
 
     /**
-     * Set the value of authTime
-     *
-     * @param DateTime $authTime
-     * @return  self
+     * Set the value of authTime.
      */
-    public function setAuthTime(DateTime $authTime): self
+    public function setAuthTime(\DateTime $authTime): self
     {
         $this->authTime = $authTime;
 
@@ -267,8 +240,7 @@ class IdTokenEntity
     }
 
     /**
-     * Get the value of nonce
-     * @return string|null
+     * Get the value of nonce.
      */
     public function getNonce(): ?string
     {
@@ -276,10 +248,7 @@ class IdTokenEntity
     }
 
     /**
-     * Set the value of nonce
-     *
-     * @param string|null $nonce
-     * @return  self
+     * Set the value of nonce.
      */
     public function setNonce(?string $nonce): self
     {
@@ -289,8 +258,7 @@ class IdTokenEntity
     }
 
     /**
-     * Get the value of acr
-     * @return string|null
+     * Get the value of acr.
      */
     public function getAcr(): ?string
     {
@@ -298,10 +266,7 @@ class IdTokenEntity
     }
 
     /**
-     * Set the value of acr
-     *
-     * @param string|null $acr
-     * @return  self
+     * Set the value of acr.
      */
     public function setAcr(?string $acr): self
     {
@@ -311,7 +276,8 @@ class IdTokenEntity
     }
 
     /**
-     * Get the value of amr
+     * Get the value of amr.
+     *
      * @return array|string[]
      */
     public function getAmr(): array
@@ -320,10 +286,7 @@ class IdTokenEntity
     }
 
     /**
-     * Set the value of amr
-     *
-     * @param array|null $amr
-     * @return  self
+     * Set the value of amr.
      */
     public function setAmr(?array $amr): self
     {
@@ -333,8 +296,7 @@ class IdTokenEntity
     }
 
     /**
-     * Get the value of azp
-     * @return string|null
+     * Get the value of azp.
      */
     public function getAzp(): ?string
     {
@@ -342,10 +304,7 @@ class IdTokenEntity
     }
 
     /**
-     * Set the value of azp
-     *
-     * @param string|null $azp
-     * @return  self
+     * Set the value of azp.
      */
     public function setAzp(?string $azp): self
     {
@@ -355,8 +314,7 @@ class IdTokenEntity
     }
 
     /**
-     * Get the value of issuer
-     * @return string
+     * Get the value of issuer.
      */
     public function getIssuer(): string
     {
@@ -364,10 +322,7 @@ class IdTokenEntity
     }
 
     /**
-     * Set the value of issuer
-     *
-     * @param string $issuer
-     * @return  self
+     * Set the value of issuer.
      */
     public function setIssuer(string $issuer): self
     {
@@ -376,28 +331,16 @@ class IdTokenEntity
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getIdentified(): string
     {
         return $this->identified;
     }
 
-    /**
-     * @param string $identified
-     */
     public function setIdentified(string $identified): void
     {
         $this->identified = $identified;
     }
 
-
-    /**
-     * @param $key
-     * @param $value
-     * @return void
-     */
     public function addExtra($key, $value): void
     {
         $this->extra[$key] = $value;

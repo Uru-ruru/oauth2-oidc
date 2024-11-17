@@ -6,7 +6,7 @@ use League\OAuth2\Server\Entities\AccessTokenEntityInterface as LeagueAccessToke
 use League\OAuth2\Server\Entities\ScopeEntityInterface;
 
 /**
- * Interface AccessTokenEntityInterface
+ * Interface AccessTokenEntityInterface.
  */
 interface AccessTokenEntityInterface extends LeagueAccessTokenEntityInterface
 {
@@ -17,14 +17,10 @@ interface AccessTokenEntityInterface extends LeagueAccessTokenEntityInterface
      */
     public function getClaims(): array;
 
-    /**
-     * @param $claim
-     * @return void
-     */
     public function addClaim($claim): void;
 
     /**
-     * Return an array of scopes associated with the token
+     * Return an array of scopes associated with the token.
      *
      * @return ScopeEntityInterface[]
      */

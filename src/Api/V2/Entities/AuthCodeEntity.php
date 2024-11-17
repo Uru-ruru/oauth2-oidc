@@ -8,8 +8,7 @@ use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\TokenEntityTrait;
 
 /**
- * Class AuthCodeEntity
- * @package App\Api\V2\Entities
+ * Class AuthCodeEntity.
  */
 class AuthCodeEntity implements AuthCodeEntityInterface
 {

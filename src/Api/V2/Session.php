@@ -2,19 +2,13 @@
 
 namespace App\Api\V2;
 
-use DateTime;
-
 /**
- * Class Session
- * @package App\Api\V2
+ * Class Session.
  */
 class Session
 {
-    /**
-     * @return DateTime
-     */
-    public function getAuthTime(): DateTime
+    public function getAuthTime(): \DateTime
     {
-        return new DateTime();
+        return new \DateTime();
     }
 }

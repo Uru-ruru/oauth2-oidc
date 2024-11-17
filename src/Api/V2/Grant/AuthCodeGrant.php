@@ -2,53 +2,36 @@
 
 namespace App\Api\V2\Grant;
 
-use App\Api\V2\ResponseTypes\BearerTokenResponse;
-use App\Api\V2\Session;
-use DateInterval;
-use DateTime;
-use DateTimeImmutable;
+use App\Api\V2\AuthenticationRequest;
 use App\Api\V2\Entities\IdTokenEntity;
 use App\Api\V2\Repositories\Interfaces\AccessTokenRepositoryInterface;
 use App\Api\V2\Repositories\Interfaces\ClaimRepositoryInterface;
-use App\Api\V2\AuthenticationRequest;
 use App\Api\V2\ResponseHandler;
+use App\Api\V2\ResponseTypes\BearerTokenResponse;
+use App\Api\V2\Session;
 use App\Api\V2\SessionInformation;
-use Exception;
 use League\OAuth2\Server\Entities\UserEntityInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
+use League\OAuth2\Server\ResponseTypes\RedirectResponse;
 use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
-use LogicException;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Class AuthCodeGrant
- * @package App\Api\V2\Grant
+ * Class AuthCodeGrant.
  */
 class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
 {
     use OIDCTrait;
 
-    /**
-     * @var DateInterval
-     */
-    protected DateInterval $authCodeTTL;
+    protected \DateInterval $authCodeTTL;
 
-    /**
-     * @var DateInterval
-     */
-    protected DateInterval $idTokenTTL;
+    protected \DateInterval $idTokenTTL;
 
-    /**
-     * @var Session
-     */
     protected Session $session;
 
-    /**
-     * @var ClaimRepositoryInterface
-     */
     protected ClaimRepositoryInterface $claimRepository;
 
     /**
@@ -57,23 +40,16 @@ class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
     protected $accessTokenRepository;
 
     /**
-     * @param AuthCodeRepositoryInterface $authCodeRepository
-     * @param RefreshTokenRepositoryInterface $refreshTokenRepository
-     * @param ClaimRepositoryInterface $claimRepository
-     * @param Session $session
-     * @param DateInterval $authCodeTTL
-     * @param DateInterval $idTokenTTL
-     * @param bool $disableRequireCodeChallengeForPublicClients
-     * @throws Exception
+     * @throws \Exception
      */
     public function __construct(
-        AuthCodeRepositoryInterface     $authCodeRepository,
+        AuthCodeRepositoryInterface $authCodeRepository,
         RefreshTokenRepositoryInterface $refreshTokenRepository,
-        ClaimRepositoryInterface        $claimRepository,
-        Session                         $session,
-        DateInterval                    $authCodeTTL,
-        DateInterval                    $idTokenTTL,
-        bool                            $disableRequireCodeChallengeForPublicClients = true
+        ClaimRepositoryInterface $claimRepository,
+        Session $session,
+        \DateInterval $authCodeTTL,
+        \DateInterval $idTokenTTL,
+        bool $disableRequireCodeChallengeForPublicClients = true
     ) {
         parent::__construct($authCodeRepository, $refreshTokenRepository, $authCodeTTL);
 
@@ -87,20 +63,14 @@ class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
             $this->disableRequireCodeChallengeForPublicClients();
         }
 
-        $this->setIssuer('https://' . SITE_SERVER_NAME);
+        $this->setIssuer('https://'.SITE_SERVER_NAME);
     }
 
-    /**
-     * @return string
-     */
     public function getIdentifier(): string
     {
         return 'authorization_code_oidc';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function canRespondToAuthorizationRequest(ServerRequestInterface $request): bool
     {
         $result = parent::canRespondToAuthorizationRequest($request);
@@ -112,28 +82,24 @@ class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
     }
 
     /**
-     * @param ServerRequestInterface $request
-     * @return bool
      * @throws \JsonException
      */
     public function canRespondToAccessTokenRequest(ServerRequestInterface $request): bool
     {
-        $requestParameters = (array)$request->getParsedBody();
-        //FIXME: for some reason, the unit test complete if the next three lines are removed
+        $requestParameters = (array) $request->getParsedBody();
+        // FIXME: for some reason, the unit test complete if the next three lines are removed
         if (!array_key_exists('code', $requestParameters)) {
             return false;
         }
 
         $authCodePayload = json_decode($this->decrypt($requestParameters['code']), false, 512, JSON_THROW_ON_ERROR);
 
-        return (in_array('openid', $authCodePayload->scopes, true) &&
-            array_key_exists('grant_type', $requestParameters) &&
-            $requestParameters['grant_type'] === 'authorization_code');
+        return in_array('openid', $authCodePayload->scopes, true)
+            && array_key_exists('grant_type', $requestParameters)
+            && 'authorization_code' === $requestParameters['grant_type'];
     }
 
     /**
-     * {@inheritdoc}
-     * @return AuthorizationRequest
      * @throws OAuthServerException
      * @throws \JsonException
      */
@@ -146,7 +112,7 @@ class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
             $request
         );
 
-        //In constract with OAuth 2.0, in OIDC, the redirect_uri parameter is required
+        // In constract with OAuth 2.0, in OIDC, the redirect_uri parameter is required
         if (is_null($redirectUri)) {
             throw OAuthServerException::invalidRequest('redirect_uri');
         }
@@ -192,10 +158,9 @@ class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
     }
 
     /**
-     * {@inheritdoc}
-     * @throws Exception
+     * @throws \Exception
      */
-    public function respondToAccessTokenRequest(ServerRequestInterface $request, ResponseTypeInterface $responseType, DateInterval $accessTokenTTL)
+    public function respondToAccessTokenRequest(ServerRequestInterface $request, ResponseTypeInterface $responseType, \DateInterval $accessTokenTTL): BearerTokenResponse
     {
         /**
          * @var BearerTokenResponse $result
@@ -205,21 +170,21 @@ class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
         $encryptedAuthCode = $this->getRequestParameter('code', $request, null);
         $authCodePayload = json_decode($this->decrypt($encryptedAuthCode), false, 512, JSON_THROW_ON_ERROR);
 
-        logger()->info(__CLASS__, (array)$authCodePayload);
+        logger()->info(__CLASS__, (array) $authCodePayload);
 
         if ($authCodePayload->claims) {
-            $authCodePayload->claims = (array)$authCodePayload->claims;
+            $authCodePayload->claims = (array) $authCodePayload->claims;
         }
 
         $idToken = new IdTokenEntity();
         $idToken->setIssuer($this->getIssuer());
         $idToken->setSubject($authCodePayload->user_id);
         $idToken->setAudience($authCodePayload->client_id);
-        $idToken->setIdentified($authCodePayload->client_id . $authCodePayload->user_id);
-        $idToken->setExpiration(DateTimeImmutable::createFromMutable((new DateTime())->add($this->idTokenTTL)));
-        $idToken->setIat(new DateTimeImmutable());
+        $idToken->setIdentified($authCodePayload->client_id.$authCodePayload->user_id);
+        $idToken->setExpiration(\DateTimeImmutable::createFromMutable((new \DateTime())->add($this->idTokenTTL)));
+        $idToken->setIat(new \DateTimeImmutable());
 
-        $idToken->setAuthTime(new DateTime('@' . $authCodePayload->auth_time));
+        $idToken->setAuthTime(new \DateTime('@'.$authCodePayload->auth_time));
         $idToken->setNonce($authCodePayload->nonce);
 
         if ($authCodePayload->claims) {
@@ -240,21 +205,20 @@ class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
     }
 
     /**
-     * {@inheritdoc}
-     * @throws OAuthServerException|\JsonException
+     * @throws \JsonException|OAuthServerException
      */
-    public function completeAuthorizationRequest(AuthorizationRequest $authorizationRequest)
+    public function completeAuthorizationRequest(AuthorizationRequest $authorizationRequest): RedirectResponse|ResponseTypeInterface
     {
-        if (!($authorizationRequest instanceof AuthenticationRequest)) {
+        if (!$authorizationRequest instanceof AuthenticationRequest) {
             throw OAuthServerException::invalidRequest('not possible');
         }
 
-        if ($authorizationRequest->getUser() instanceof UserEntityInterface === false) {
-            throw new LogicException('An instance of UserEntityInterface should be set on the AuthorizationRequest');
+        if (false === $authorizationRequest->getUser() instanceof UserEntityInterface) {
+            throw new \LogicException('An instance of UserEntityInterface should be set on the AuthorizationRequest');
         }
 
         // The user approved the client, redirect them back with an auth code
-        if ($authorizationRequest->isAuthorizationApproved() === true) {
+        if (true === $authorizationRequest->isAuthorizationApproved()) {
             $authCode = $this->issueAuthCode(
                 $this->authCodeTTL,
                 $authorizationRequest->getClient(),
@@ -269,7 +233,7 @@ class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
                 'auth_code_id' => $authCode->getIdentifier(),
                 'scopes' => $authCode->getScopes(),
                 'user_id' => $authCode->getUserIdentifier(),
-                'expire_time' => (new DateTime())->add($this->authCodeTTL)->format('U'),
+                'expire_time' => (new \DateTime())->add($this->authCodeTTL)->format('U'),
                 'code_challenge' => $authorizationRequest->getCodeChallenge(),
                 'code_challenge_method' => $authorizationRequest->getCodeChallengeMethod(),
 
@@ -278,9 +242,8 @@ class AuthCodeGrant extends \League\OAuth2\Server\Grant\AuthCodeGrant
                 'max_age' => $authorizationRequest->getMaxAge(),
                 'id_token_hint' => $authorizationRequest->getIDTokenHint(),
                 'claims' => $authorizationRequest->getClaims(),
-                'sessionInformation' => (string)$authorizationRequest->getSessionInformation(),
-                'auth_time' => $this->session->getAuthTime()->format('U')
-
+                'sessionInformation' => (string) $authorizationRequest->getSessionInformation(),
+                'auth_time' => $this->session->getAuthTime()->format('U'),
             ];
 
             $code = $this->encrypt(

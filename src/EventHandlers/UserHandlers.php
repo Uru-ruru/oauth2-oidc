@@ -5,21 +5,21 @@ namespace App\EventHandlers;
 use App\Api\V2\Oauth2Controller;
 
 /**
- * Class UserHandlers
+ * Class UserHandlers.
  */
 class UserHandlers
 {
-
     /**
-     * Редиректим пользователей на страницу по умолчанию (или в переадресовываем)
-     * @param $fields
+     * Редиректим пользователей на страницу по умолчанию (или в переадресовываем).
+     *
+     * @param mixed $fields
      */
     public function redirectAfterLogin(&$fields): void
     {
         $from = static::checkFromParam();
         $url = false;
         if ($fields['USER_ID'] && $from) {
-            if ($from === 'oauth2') {
+            if ('oauth2' === $from) {
                 $url = Oauth2Controller::getAuthorizationLink(static::checkClientParam());
             }
             unset($_COOKIE['sso_from']);
@@ -27,35 +27,25 @@ class UserHandlers
             LocalRedirect($url, true);
         }
 
-
-        if ($fields && $fields['RESULT_MESSAGE']['TYPE'] !== 'ERROR') {
+        if ($fields && 'ERROR' !== $fields['RESULT_MESSAGE']['TYPE']) {
             $uri = parse_url($_SERVER['REQUEST_URI']);
-            if ($uri['path'] === '/') {
+            if ('/' === $uri['path']) {
                 LocalRedirect('/');
             }
         }
     }
 
-    /**
-     * @return false|string
-     */
-    public static function checkRedirectParam()
+    public static function checkRedirectParam(): false|string
     {
         return $_GET['redirect_uri'] ?? $_COOKIE['sso_redirect_uri'] ?? false;
     }
 
-    /**
-     * @return false|string
-     */
-    public static function checkFromParam()
+    public static function checkFromParam(): false|string
     {
         return $_GET['from'] ?? $_COOKIE['sso_from'] ?? false;
     }
 
-    /**
-     * @return false|string
-     */
-    public static function checkClientParam()
+    public static function checkClientParam(): false|string
     {
         return $_GET['client_id'] ?? $_COOKIE['sso_client_id'] ?? false;
     }

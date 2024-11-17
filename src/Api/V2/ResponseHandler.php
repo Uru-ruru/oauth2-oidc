@@ -7,32 +7,25 @@ use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\ResponseTypes\RedirectResponse;
 
 /**
- * Class ResponseHandler
- * @package App\Api\V2
+ * Class ResponseHandler.
  */
 class ResponseHandler
 {
-
     /**
      * @var array|RedirectResponseHandler[]
      */
     protected array $handlers;
 
-    /**
-     *
-     */
     public function __construct()
     {
         $this->handlers = [
-            new RedirectResponseHandler()
+            new RedirectResponseHandler(),
         ];
     }
 
-
     /**
-     * @param AuthenticationRequest $authenticationRequest
-     * @param $code
-     * @return RedirectResponse
+     * @param mixed $code
+     *
      * @throws OAuthServerException
      */
     public function getResponse(AuthenticationRequest $authenticationRequest, $code): RedirectResponse

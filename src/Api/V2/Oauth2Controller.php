@@ -22,8 +22,6 @@ use App\Api\V2\ResponseTypes\BearerTokenResponse;
 use App\EventHandlers\UserHandlers;
 use App\Models\HL\OauthRefreshTokens;
 use App\Models\HL\OauthTokens;
-use DateInterval;
-use Exception;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
@@ -37,44 +35,28 @@ use Strobotti\JWK\KeyFactory;
 use Strobotti\JWK\KeySet;
 
 /**
- * Class Oauth2Controller
- * @package App\Api\V2
+ * Class Oauth2Controller.
  */
 class Oauth2Controller extends BaseController
 {
-    /**
-     * @var AuthorizationServer
-     */
-    private AuthorizationServer $server;
-    /**
-     * @var UserRepositoryInterface|UserRepository
-     */
-    protected UserRepositoryInterface $userRepository;
-    /**
-     * @var AccessTokenRepositoryInterface|AccessTokenRepository
-     */
-    protected AccessTokenRepositoryInterface $tokenRepository;
-    /**
-     * @var ClaimRepositoryInterface|ClaimRepository
-     */
-    protected ClaimRepositoryInterface $claimRepository;
-
-    /**
-     * @var string
-     */
-    protected string $privateKey;
-
-    /**
-     *
-     */
     private const alg = 'RS256';
 
+    protected UserRepository|UserRepositoryInterface $userRepository;
+
+    protected AccessTokenRepository|AccessTokenRepositoryInterface $tokenRepository;
+
+    protected ClaimRepository|ClaimRepositoryInterface $claimRepository;
+
+    protected string $privateKey;
+
+    private AuthorizationServer $server;
+
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function __construct()
     {
-        $this->privateKey = 'file://' . env('PRIVATE_KEY');
+        $this->privateKey = 'file://'.env('PRIVATE_KEY');
 
         $clientRepository = new ClientRepository();
         $this->tokenRepository = new AccessTokenRepository();
@@ -99,23 +81,23 @@ class Oauth2Controller extends BaseController
             $refreshTokenRepository,
             $this->claimRepository,
             $session,
-            new DateInterval('PT10M'), // authorization codes will expire after 10 minutes
-            new DateInterval('PT10M') // token will expire after 10 minutes
+            new \DateInterval('PT10M'), // authorization codes will expire after 10 minutes
+            new \DateInterval('PT10M') // token will expire after 10 minutes
         );
 
-        $grantAuthCode->setRefreshTokenTTL(new DateInterval('P1M')); // refresh tokens will expire after 1 month
+        $grantAuthCode->setRefreshTokenTTL(new \DateInterval('P1M')); // refresh tokens will expire after 1 month
 
         $this->server->enableGrantType(
             $grantAuthCode,
-            new DateInterval('PT1H') // access tokens will expire after 1 hour
+            new \DateInterval('PT1H') // access tokens will expire after 1 hour
         );
 
         $grantRefresh = new RefreshTokenGrant($refreshTokenRepository);
-        $grantRefresh->setRefreshTokenTTL(new DateInterval('P1M')); // The refresh token will expire in 1 month
+        $grantRefresh->setRefreshTokenTTL(new \DateInterval('P1M')); // The refresh token will expire in 1 month
 
         $this->server->enableGrantType(
             $grantRefresh,
-            new DateInterval('PT1H') // The new access token will expire after 1 hour
+            new \DateInterval('PT1H') // The new access token will expire after 1 hour
         );
 
         $grantPassword = new PasswordGrant(
@@ -123,75 +105,53 @@ class Oauth2Controller extends BaseController
             $refreshTokenRepository,
             $this->claimRepository,
             $session,
-            new DateInterval('PT10M'), // authorization codes will expire after 10 minutes
-            new DateInterval('PT10M') // token will expire after 10 minutes
+            new \DateInterval('PT10M'), // authorization codes will expire after 10 minutes
+            new \DateInterval('PT10M') // token will expire after 10 minutes
         );
 
-        $grantPassword->setRefreshTokenTTL(new DateInterval('P1M')); // refresh tokens will expire after 1 month
+        $grantPassword->setRefreshTokenTTL(new \DateInterval('P1M')); // refresh tokens will expire after 1 month
 
         // Enable the password grant on the server
         $this->server->enableGrantType(
             $grantPassword,
-            new DateInterval('PT12H') // access tokens will expire after 12 hours
+            new \DateInterval('PT12H') // access tokens will expire after 12 hours
         );
     }
 
-    /**
-     * @return AdvancedResourceServer
-     */
     public static function resourceServerFactory(): AdvancedResourceServer
     {
-        $publicKey = 'file://' . env('PUBLIC_KEY');
+        $publicKey = 'file://'.env('PUBLIC_KEY');
+
         return new AdvancedResourceServer(
             new AccessTokenRepository(),
             $publicKey
         );
     }
 
-    /**
-     * @param $clientId
-     * @return string
-     */
     public static function getAuthorizationLink($clientId): string
     {
         $params = [];
         $client = new ClientEntity($clientId);
         if ($client->isLoaded()) {
             foreach (AuthorizationMiddleware::transferVariables as $paramName => $val) {
-                if ($val === null) {
-                    $params[$paramName] = $_GET[$paramName] ?: $_COOKIE[AuthorizationMiddleware::sso_prefix . $paramName];
+                if (null === $val) {
+                    $params[$paramName] = $_GET[$paramName] ?: $_COOKIE[AuthorizationMiddleware::sso_prefix.$paramName];
                 }
             }
             $params['client_id'] = $client->getName();
             $params['redirect_uri'] = $client->getRedirectUri();
             $params += static::getCustomVariables($client);
-            return '/api/authorize?' . http_build_query($params);
+
+            return '/api/authorize?'.http_build_query($params);
         }
         $redirect = UserHandlers::checkRedirectParam();
-        return $redirect ?: SITE_SERVER_NAME . '/?' . http_build_query([
-                'code' => 404,
-                'message' => "Client not found"
-            ]);
+
+        return $redirect ?: SITE_SERVER_NAME.'/?'.http_build_query([
+            'code' => 404,
+            'message' => 'Client not found',
+        ]);
     }
 
-    /**
-     * @param ClientEntityInterface $client
-     * @return array
-     */
-    private static function getCustomVariables(ClientEntityInterface $client): array
-    {
-        $params = [];
-        foreach ($client->getCustomVariables() as $var) {
-            $params[$var] = $_GET[$var] ?: $_COOKIE[AuthorizationMiddleware::sso_prefix . $var];
-        }
-        return $params;
-    }
-
-    /**
-     * @param Request $request
-     * @param Response $response
-     * @return Response
-     */
     public function authorizeCode(Request $request, Response $response): Response
     {
         try {
@@ -204,43 +164,33 @@ class Oauth2Controller extends BaseController
             // Once the user has approved or denied the client update the status
             // (true = approved, false = denied)
             $authRequest->setAuthorizationApproved($userEntity->isUserExist());
+
             // Return the HTTP redirect response
             return $this->server->completeAuthorizationRequest($authRequest, $response);
         } catch (OAuthServerException $exception) {
             return $exception->generateHttpResponse($response);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             return $this->withJson($request, $response, [
                 'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
+                'message' => $exception->getMessage(),
             ])->withStatus(500);
         }
     }
 
-    /**
-     * @param Request $request
-     * @param Response $response
-     * @return Response
-     */
     public function accessToken(Request $request, Response $response): Response
     {
         try {
             return $this->server->respondToAccessTokenRequest($request, $response);
         } catch (OAuthServerException $exception) {
             return $exception->generateHttpResponse($response);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             return $this->withJson($request, $response, [
                 'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
+                'message' => $exception->getMessage(),
             ])->withStatus(500);
         }
     }
 
-
-    /**
-     * @param Request $request
-     * @param Response $response
-     * @return Response
-     */
     public function userInfo(Request $request, Response $response): Response
     {
         try {
@@ -257,6 +207,7 @@ class Oauth2Controller extends BaseController
                     array_push($claimsRequested, ...$claims);
                 }
             }
+
             return $this->withJson($request, $response, $this->userRepository->getUserInfoAttributes(
                 $this->userRepository->getUserByIdentifier(
                     $validated->getAttribute('oauth_user_id')
@@ -266,19 +217,14 @@ class Oauth2Controller extends BaseController
             ));
         } catch (OAuthServerException $exception) {
             return $exception->generateHttpResponse($response);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             return $this->withJson($request, $response, [
                 'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
+                'message' => $exception->getMessage(),
             ])->withStatus(500);
         }
     }
 
-    /**
-     * @param Request $request
-     * @param Response $response
-     * @return Response
-     */
     public function logout(Request $request, Response $response): Response
     {
         try {
@@ -322,23 +268,19 @@ class Oauth2Controller extends BaseController
                 $response,
                 'state'
             );
-            return $this->withRedirect($request, $response, ($redirectUri ?: 'https://support.1ci.com/') . ($state ? '?state=' . $state : ''));
-        } catch (Exception $exception) {
+
+            return $this->withRedirect($request, $response, ($redirectUri ?: 'https://').($state ? '?state='.$state : ''));
+        } catch (\Exception $exception) {
             return $this->withJson($request, $response, [
                 'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
+                'message' => $exception->getMessage(),
             ])->withStatus(500);
         }
     }
 
-    /**
-     * @param Request $request
-     * @param Response $response
-     * @return Response
-     */
     public function jwksKeys(Request $request, Response $response): Response
     {
-        $publicKeyPath = 'file://' . env('PUBLIC_KEY');
+        $publicKeyPath = 'file://'.env('PUBLIC_KEY');
         $options = [
             'use' => 'sig',
             'alg' => self::alg,
@@ -349,56 +291,61 @@ class Oauth2Controller extends BaseController
         $key = $keyFactory->createFromPem($publicKeyPath, $options);
         $keySet = new KeySet();
         $keySet->addKey($key);
+
         return $this->withJson($request, $response, $keySet);
     }
 
-    /**
-     * @param Request $request
-     * @param Response $response
-     * @return Response
-     */
     public function configuration(Request $request, Response $response): Response
     {
         $scopeRepository = new ScopeRepository();
         $claimRepository = new ClaimRepository();
 
         return $this->withJson($request, $response, [
-            "issuer" => "https://" . SITE_SERVER_NAME,
-            "authorization_endpoint" => "https://" . SITE_SERVER_NAME . "/api/authorize",
-            "end_session_endpoint" => "https://" . SITE_SERVER_NAME . "/api/logout",
-            "token_endpoint" => "https://" . SITE_SERVER_NAME . "/api/access_token",
-            "userinfo_endpoint" => "https://" . SITE_SERVER_NAME . "/api/v2/user",
-            "registration_endpoint" => "https://" . SITE_SERVER_NAME . "/?register=yes",
-            "jwks_uri" => "https://" . SITE_SERVER_NAME . "/api/certs",
-            "scopes_supported" => $scopeRepository->getScopes(),
-            "response_types_supported" => [
-                "code",
-                "none",
-                "id_token",
-                "token",
-                "id_token token",
-                "code id_token",
-                "code token",
-                "code id_token token"
+            'issuer' => 'https://'.SITE_SERVER_NAME,
+            'authorization_endpoint' => 'https://'.SITE_SERVER_NAME.'/api/authorize',
+            'end_session_endpoint' => 'https://'.SITE_SERVER_NAME.'/api/logout',
+            'token_endpoint' => 'https://'.SITE_SERVER_NAME.'/api/access_token',
+            'userinfo_endpoint' => 'https://'.SITE_SERVER_NAME.'/api/v2/user',
+            'registration_endpoint' => 'https://'.SITE_SERVER_NAME.'/?register=yes',
+            'jwks_uri' => 'https://'.SITE_SERVER_NAME.'/api/certs',
+            'scopes_supported' => $scopeRepository->getScopes(),
+            'response_types_supported' => [
+                'code',
+                'none',
+                'id_token',
+                'token',
+                'id_token token',
+                'code id_token',
+                'code token',
+                'code id_token token',
             ],
-            "response_modes_supported" => [
-                "query",
-                "fragment",
-                "form_post"
+            'response_modes_supported' => [
+                'query',
+                'fragment',
+                'form_post',
             ],
-            "grant_types_supported" => [
-                "authorization_code",
-                "refresh_token",
-                "password"
+            'grant_types_supported' => [
+                'authorization_code',
+                'refresh_token',
+                'password',
             ],
-            "subject_types_supported" => [
+            'subject_types_supported' => [
                 ClaimEntityInterface::TYPE_USERINFO,
-
             ],
-            "id_token_signing_alg_values_supported" => [
-                self::alg
+            'id_token_signing_alg_values_supported' => [
+                self::alg,
             ],
-            "claims_supported" => $claimRepository->getClaims()
+            'claims_supported' => $claimRepository->getClaims(),
         ]);
+    }
+
+    private static function getCustomVariables(ClientEntityInterface $client): array
+    {
+        $params = [];
+        foreach ($client->getCustomVariables() as $var) {
+            $params[$var] = $_GET[$var] ?: $_COOKIE[AuthorizationMiddleware::sso_prefix.$var];
+        }
+
+        return $params;
     }
 }

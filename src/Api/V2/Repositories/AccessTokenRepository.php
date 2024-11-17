@@ -8,21 +8,16 @@ use App\Api\V2\Entities\ScopeEntity;
 use App\Api\V2\Repositories\Interfaces\AccessTokenRepositoryInterface;
 use App\Models\HL\OauthClients;
 use App\Models\HL\OauthTokens;
-use DateTimeImmutable;
-use Exception;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use Uru\BitrixModels\Exceptions\ExceptionFromBitrix;
 
 /**
- * Class AccessTokenRepository
- * @package App\Api\V2\Repositories
+ * Class AccessTokenRepository.
  */
 class AccessTokenRepository implements AccessTokenRepositoryInterface
 {
-
     /**
-     * {@inheritdoc}
      * @throws ExceptionFromBitrix
      */
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity): bool
@@ -42,11 +37,13 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * {@inheritdoc}
+     * @param mixed $tokenId
+     *
      * @throws ExceptionFromBitrix
      */
     public function revokeAccessToken($tokenId): bool
@@ -54,25 +51,21 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
         if (OauthTokens::revokeUserToken($tokenId)) {
             return true;
         }
+
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function isAccessTokenRevoked($tokenId): bool
     {
         $token = OauthTokens::getTokenByIdentifier($tokenId);
         if ($token) {
             return false; // Access token hasn't been revoked
         }
+
         return true;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getNewToken(ClientEntityInterface $clientEntity, array $scopes, $userIdentifier = null)
+    public function getNewToken(ClientEntityInterface $clientEntity, array $scopes, $userIdentifier = null): AccessTokenEntity
     {
         $accessToken = new AccessTokenEntity();
         $accessToken->setClient($clientEntity);
@@ -80,24 +73,20 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             $accessToken->addScope($scope);
         }
         $accessToken->setUserIdentifier($userIdentifier);
+
         return $accessToken;
     }
 
-    /**
-     * @param AccessTokenEntityInterface $token
-     * @param array $claims
-     * @return void
-     */
-    public function storeClaims(AccessTokenEntityInterface $token, array $claims)
+    public function storeClaims(AccessTokenEntityInterface $token, array $claims): void
     {
         foreach ($claims as $claim) {
-            /** @var \App\Api\V2\Entities\Interfaces\AccessTokenEntityInterface $token */
+            // @var \App\Api\V2\Entities\Interfaces\AccessTokenEntityInterface $token
             $token->addClaim($claim);
         }
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function getAccessToken(string $tokenId): \App\Api\V2\Entities\Interfaces\AccessTokenEntityInterface
     {
@@ -107,12 +96,14 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             $accessToken->setUserIdentifier($token->user->getId());
             $accessToken->setIdentifier($token->getIdentifier());
             $accessToken->setClient(new ClientEntity($token->getClientId()));
-            $accessToken->setExpiryDateTime(new DateTimeImmutable($token->getExpiryDateTime() ? $token->getExpiryDateTime()->format(date_format_full()) : null));
+            $accessToken->setExpiryDateTime(new \DateTimeImmutable($token->getExpiryDateTime() ? $token->getExpiryDateTime()->format(date_format_full()) : null));
             foreach ($token->getScopes() as $scope) {
                 $accessToken->addScope(new ScopeEntity($scope));
             }
+
             return $accessToken;
         }
+
         return new AccessTokenEntity();
     }
 }

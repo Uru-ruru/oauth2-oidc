@@ -8,12 +8,10 @@ use League\OAuth2\Server\Entities\ScopeEntityInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 
 /**
- * Class ScopeRepository
- * @package App\Api\V2\Repositories
+ * Class ScopeRepository.
  */
 class ScopeRepository implements ScopeRepositoryInterface
 {
-
     /**
      * @var array|\string[][]
      */
@@ -29,50 +27,48 @@ class ScopeRepository implements ScopeRepositoryInterface
         ],
         'profile' => [
             'description' => 'Profile',
-        ]
+        ],
     ];
 
-    /**
-     * @return array
-     */
     public function getScopes(): array
     {
         $scopes = [];
         foreach ($this->scopes as $scope => $params) {
             $scopes[] = $scope;
         }
+
         return $scopes;
     }
 
     /**
-     * @param $identifier
-     * @return ScopeEntity|false
+     * @param mixed $identifier
      */
-    public function getScopeEntityByIdentifier($identifier)
+    public function getScopeEntityByIdentifier($identifier): false|ScopeEntity
     {
-        if (array_key_exists($identifier, $this->scopes) === false) {
+        if (false === array_key_exists($identifier, $this->scopes)) {
             return false;
         }
 
         $scope = new ScopeEntity();
         $scope->setIdentifier($identifier);
+
         return $scope;
     }
 
     /**
-     * @param array $scopes
-     * @param $grantType
-     * @param ClientEntityInterface $clientEntity
-     * @param $userIdentifier
+     * @param mixed      $grantType
+     * @param null|mixed $userIdentifier
+     *
      * @return array|ScopeEntityInterface[]
      */
     public function finalizeScopes(array $scopes, $grantType, ClientEntityInterface $clientEntity, $userIdentifier = null): array
     {
-        if ((int)$userIdentifier === 1) {
+        if (1 === (int) $userIdentifier) {
             $scope = new ScopeEntity();
             $scope->setIdentifier('admin');
             $scopes[] = $scope;
         }
+
         return $scopes;
     }
 }

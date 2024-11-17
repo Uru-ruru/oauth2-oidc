@@ -6,41 +6,30 @@ use App\Api\V2\AuthenticationRequest;
 use League\OAuth2\Server\ResponseTypes\RedirectResponse;
 
 /**
- * Class RedirectResponseHandler
- * @package App\Api\V2\ResponseHandlers
+ * Class RedirectResponseHandler.
  */
 class RedirectResponseHandler
 {
-
-    /**
-     * @param AuthenticationRequest $authenticationRequest
-     * @return bool
-     */
     public function canRespondToAuthorizationRequest(AuthenticationRequest $authenticationRequest): bool
     {
         return
-            $authenticationRequest->getResponseMode() === null ||
-            $authenticationRequest->getResponseMode() === 'fragment' ||
-            $authenticationRequest->getResponseMode() === 'form_post' ||
-            $authenticationRequest->getResponseMode() === 'query';
+            null === $authenticationRequest->getResponseMode()
+            || 'fragment' === $authenticationRequest->getResponseMode()
+            || 'form_post' === $authenticationRequest->getResponseMode()
+            || 'query' === $authenticationRequest->getResponseMode();
     }
 
-    /**
-     * @param AuthenticationRequest $authenticationRequest
-     * @param $code
-     * @return RedirectResponse
-     */
     public function generateResponse(AuthenticationRequest $authenticationRequest, $code): RedirectResponse
     {
         $queryDelimiter = '?';
 
-        if ($authenticationRequest->getResponseMode() === 'fragment' ||
-            strpos($authenticationRequest->getResponseType(), 'code') === false
+        if ('fragment' === $authenticationRequest->getResponseMode()
+            || !str_contains($authenticationRequest->getResponseType(), 'code')
         ) {
             $queryDelimiter = '#';
         }
 
-        if ($authenticationRequest->getResponseMode() === 'query') {
+        if ('query' === $authenticationRequest->getResponseMode()) {
             $queryDelimiter = '?';
         }
 
@@ -55,19 +44,14 @@ class RedirectResponseHandler
                 $queryDelimiter
             )
         );
+
         return $response;
     }
 
-    /**
-     * @param $uri
-     * @param array $params
-     * @param string $queryDelimiter
-     * @return string
-     */
     public function makeRedirectUri($uri, array $params = [], string $queryDelimiter = '?'): string
     {
-        $uri .= (strpos($uri, $queryDelimiter) === false) ? $queryDelimiter : '&';
+        $uri .= (!str_contains($uri, $queryDelimiter)) ? $queryDelimiter : '&';
 
-        return $uri . http_build_query($params);
+        return $uri.http_build_query($params);
     }
 }

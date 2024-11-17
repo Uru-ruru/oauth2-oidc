@@ -9,13 +9,11 @@ use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use Uru\BitrixModels\Exceptions\ExceptionFromBitrix;
 
 /**
- * Class RefreshTokenRepository
- * @package App\Api\V2\Repositories
+ * Class RefreshTokenRepository.
  */
 class RefreshTokenRepository implements RefreshTokenRepositoryInterface
 {
     /**
-     * {@inheritdoc}
      * @throws ExceptionFromBitrix
      */
     public function persistNewRefreshToken(RefreshTokenEntityInterface $refreshTokenEntity): bool
@@ -31,11 +29,13 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * {@inheritdoc}
+     * @param mixed $tokenId
+     *
      * @throws ExceptionFromBitrix
      */
     public function revokeRefreshToken($tokenId): bool
@@ -44,25 +44,21 @@ class RefreshTokenRepository implements RefreshTokenRepositoryInterface
         if (OauthRefreshTokens::revokeUserToken($tokenId)) {
             return true;
         }
+
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function isRefreshTokenRevoked($tokenId): bool
     {
         $token = OauthRefreshTokens::getTokenByIdentifier($tokenId);
         if ($token) {
             return false; // Access token hasn't been revoked
         }
+
         return true;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getNewRefreshToken()
+    public function getNewRefreshToken(): RefreshTokenEntity
     {
         return new RefreshTokenEntity();
     }

@@ -10,11 +10,8 @@ use Uru\BitrixModels\Models\UserModel;
  */
 class User extends UserModel
 {
-
     /**
      * Id пользователя.
-     *
-     * @return int|null
      */
     public function getId(): ?int
     {
@@ -22,7 +19,8 @@ class User extends UserModel
     }
 
     /**
-     * Получить имя
+     * Получить имя.
+     *
      * @return string
      */
     public function getName(): ?string
@@ -31,7 +29,8 @@ class User extends UserModel
     }
 
     /**
-     * Получить фамилию
+     * Получить фамилию.
+     *
      * @return string
      */
     public function getLastName(): ?string
@@ -40,7 +39,8 @@ class User extends UserModel
     }
 
     /**
-     * Получить Email
+     * Получить Email.
+     *
      * @return string
      */
     public function getEmail(): ?string
@@ -49,7 +49,8 @@ class User extends UserModel
     }
 
     /**
-     * Получить номер телефона
+     * Получить номер телефона.
+     *
      * @return string
      */
     public function getPhone(): ?string
@@ -58,7 +59,8 @@ class User extends UserModel
     }
 
     /**
-     * Получить ID скайпа
+     * Получить ID скайпа.
+     *
      * @return string
      */
     public function getSkype(): ?string
@@ -68,10 +70,6 @@ class User extends UserModel
 
     /**
      * Проверяем, является ли $password текущим паролем пользователя.
-     *
-     * @param string $password
-     *
-     * @return bool
      */
     public function isUserPassword(string $password): bool
     {
@@ -87,5 +85,4 @@ class User extends UserModel
 
         return false;
     }
-
 }

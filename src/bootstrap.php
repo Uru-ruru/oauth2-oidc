@@ -4,29 +4,24 @@ use Uru\BitrixCacher\Cache;
 use Uru\BitrixCacher\CacheBuilder;
 use Uru\DotEnv\DotEnv;
 
-define('PROJECT_PATH', dirname(__DIR__) . "/");
+define('PROJECT_PATH', dirname(__DIR__).'/');
 
-function project_path($path = '')
+function project_path($path = ''): string
 {
     return PROJECT_PATH.'/'.$path;
 }
 
-function app_path($path = '')
+function app_path($path = ''): string
 {
-    return project_path("src/$path");
+    return project_path("src/{$path}");
 }
 
 /**
- * @param null|string $key
- * @param null|float $minutes
- * @param null|Closure $callback
- * @param string $initDir
- * @param string $basedir
  * @return CacheBuilder|mixed
  */
-function cache($key = null, $minutes = null, $callback = null, $initDir = '/', $basedir = 'cache')
+function cache(?string $key = null, ?float $minutes = null, ?Closure $callback = null, string $initDir = '/', string $basedir = 'cache'): mixed
 {
-    if (func_num_args() === 0) {
+    if (0 === func_num_args()) {
         return new CacheBuilder();
     }
 

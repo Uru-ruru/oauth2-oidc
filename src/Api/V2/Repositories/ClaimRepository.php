@@ -8,17 +8,15 @@ use App\Api\V2\Repositories\Interfaces\ClaimRepositoryInterface;
 use League\OAuth2\Server\Entities\ScopeEntityInterface;
 
 /**
- * Class ClaimRepository
- * @package App\Api\V2\Repositories
+ * Class ClaimRepository.
  */
 class ClaimRepository implements ClaimRepositoryInterface
 {
-
     /**
      * @var array|string[]
      */
     private array $claims = [
-        "sub",
+        'sub',
         'name',
         'last_name',
         'email',
@@ -31,18 +29,12 @@ class ClaimRepository implements ClaimRepositoryInterface
         'position',
         'partner_statuses',
         'groups',
-        "scopes",
-        "usertype"
+        'scopes',
+        'usertype',
     ];
 
-    /**
-     * @var array
-     */
     private array $map;
 
-    /**
-     *
-     */
     public function __construct()
     {
         $claims = [];
@@ -60,40 +52,27 @@ class ClaimRepository implements ClaimRepositoryInterface
         return $this->claims;
     }
 
-    /**
-     * @param string $identifier
-     * @param $type
-     * @param $essential
-     * @return ClaimEntityInterface|null
-     */
     public function getClaimEntityByIdentifier(string $identifier, $type, $essential): ?ClaimEntityInterface
     {
         return new ClaimEntity($identifier, $type, $essential);
     }
 
-    /**
-     * @param ScopeEntityInterface $scope
-     * @return iterable
-     */
     public function getClaimsByScope(ScopeEntityInterface $scope): iterable
     {
         return $this->map[$scope->getIdentifier()];
     }
 
-    /**
-     * @param array|null $json
-     * @return array
-     */
-    public function claimsRequestToEntities(array $json = null): ?array
+    public function claimsRequestToEntities(?array $json = null): ?array
     {
         $claims = [];
         if ($json) {
-            foreach ($json as $claim=>$value) {
+            foreach ($json as $claim => $value) {
                 if (in_array($claim, $this->claims, true)) {
                     $claims[] = $claim;
                 }
             }
         }
+
         return count($claims) > 0 ? $claims : null;
     }
 }

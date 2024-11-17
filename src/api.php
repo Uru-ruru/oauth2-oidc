@@ -1,17 +1,14 @@
 <?php
 
-
 use App\Api\V2\AuthorizationMiddleware;
-
 use App\Api\V2\Oauth2Controller;
 use App\Api\V2\ResourceServerMiddleware;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use Monolog\Registry;
 use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
 
-//api logger
+// api logger
 $logger = new Logger('api');
 $logger->pushHandler(new StreamHandler('logs/api.log'));
 

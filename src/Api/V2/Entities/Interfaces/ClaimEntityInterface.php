@@ -2,41 +2,35 @@
 
 namespace App\Api\V2\Entities\Interfaces;
 
-use JsonSerializable;
-
 /**
- * Interface ClaimEntityInterface
+ * Interface ClaimEntityInterface.
  */
-interface ClaimEntityInterface extends JsonSerializable
+interface ClaimEntityInterface extends \JsonSerializable
 {
-
     /**
-     * Extra param name
+     * Extra param name.
      */
     public const TYPE_ID_TOKEN = 'id_token';
+
     /**
-     * Default value for claim type
+     * Default value for claim type.
      */
     public const TYPE_USERINFO = 'userinfo';
 
     /**
      * Get the scope's identifier.
-     *
-     * @return string
      */
     public function getIdentifier(): string;
 
     /**
-     * Get type of the claim
+     * Get type of the claim.
      *
      * @return string userinfo|id_token
      */
     public function getType(): string;
 
     /**
-     * Whether this is an essential claim
-     *
-     * @return boolean
+     * Whether this is an essential claim.
      */
     public function getEssential(): bool;
 }

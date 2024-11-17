@@ -10,53 +10,37 @@ use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\ResponseTypes\BearerTokenResponse as LeagueBearerTokenResponse;
 
 /**
- * Class BearerTokenResponse
- * @package App\Api\V2\ResponseTypes
+ * Class BearerTokenResponse.
  */
 class BearerTokenResponse extends LeagueBearerTokenResponse implements ResponseTypeInterface
 {
     /**
-     * @var mixed|null
+     * @var null|mixed
      */
-    protected $idToken = null;
+    protected $idToken;
 
     /**
-     * @var CryptKey|BaseCryptKey
+     * @var BaseCryptKey|CryptKey
      */
     protected $privateKey;
 
-    /**
-     * @param $idToken
-     * @return void
-     */
     public function setIdToken($idToken): void
     {
         $this->idToken = $idToken;
     }
 
-    /**
-     * @return mixed|null
-     */
-    public function getIdToken()
+    public function getIdToken(): mixed
     {
         return $this->idToken;
     }
 
-    /**
-     * @return AccessTokenEntityInterface
-     */
     public function getAccessToken(): AccessTokenEntityInterface
     {
         return $this->accessToken;
     }
 
-    /**
-     * @param AccessTokenEntityInterface $accessToken
-     * @return array
-     */
     protected function getExtraParams(AccessTokenEntityInterface $accessToken): array
     {
-
         /*
          The Claims requested by the profile, email, address, and phone scope values
          are returned from the UserInfo Endpoint, as described in Section 5.3.2,
@@ -64,7 +48,7 @@ class BearerTokenResponse extends LeagueBearerTokenResponse implements ResponseT
          However, when no Access Token is issued (which is the case for the response_type
          value id_token), the resulting Claims are returned in the ID Token.
          */
-        if ($this->getIdToken() !== null) {
+        if (null !== $this->getIdToken()) {
             $idToken = $this->getIdToken()->convertToJWT($this->privateKey);
 
             // FIXME: Since an AuthorizationServer does not get re-created for every call, the BearerTokenResponse object does not either.
@@ -72,7 +56,7 @@ class BearerTokenResponse extends LeagueBearerTokenResponse implements ResponseT
             $this->setIdToken(null);
 
             return [
-                ClaimEntityInterface::TYPE_ID_TOKEN => $idToken->toString()
+                ClaimEntityInterface::TYPE_ID_TOKEN => $idToken->toString(),
             ];
         }
 

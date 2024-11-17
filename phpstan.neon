@@ -1,0 +1,11 @@
+parameters:
+	level: 1
+	paths:
+		- src
+	ignoreErrors:
+	    - '#^Function [a-zA-Z_\(\)\\]+ has invalid return type [a-zA-Z\\]+.$#'
+	    - '#^Call to static method [a-zA-Z\(\)]+ on an unknown class [a-zA-Z\\]+.$#'
+	    - '#^Instantiated class CUser not found.$#'
+	    - '#^Instantiated class App\\Models\\CUser not found.$#'
+	    - '#^Constant SITE_SERVER_NAME not found.$#'
+	    - '#^Function LocalRedirect not found.$#'

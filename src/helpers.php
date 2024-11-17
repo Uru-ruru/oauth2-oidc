@@ -11,10 +11,6 @@ use Uru\BitrixIblockHelper\IblockId;
  * Получение ID инфоблока по коду (или по коду и типу).
  * Всегда выполняет лишь один запрос в БД на скрипт.
  *
- * @param string $code
- * @param string|null $type
- * @return int
- *
  * @throws RuntimeException
  */
 function iblock_id(string $code, ?string $type = null): int
@@ -24,16 +20,13 @@ function iblock_id(string $code, ?string $type = null): int
 
 /**
  * Получение данных хайлоадблока по названию его таблицы.
- * Всегда выполняет лишь один запрос в БД на скрипт и возвращает массив вида:
+ * Всегда выполняет лишь один запрос в БД на скрипт и возвращает массив вида:.
  *
  * array:3 [
  *   "ID" => "2"
  *   "NAME" => "Subscribers"
  *   "TABLE_NAME" => "app_subscribers"
  * ]
- *
- * @param string $table
- * @return array
  */
 function highloadblock(string $table): array
 {
@@ -46,9 +39,6 @@ function highloadblock(string $table): array
  * Пример для таблицы `app_subscribers`:
  * $subscribers = highloadblock_class('app_subscribers');
  * $subscribers::getList();
- *
- * @param string $table
- * @return string
  */
 function highloadblock_class(string $table): string
 {
@@ -62,9 +52,6 @@ function highloadblock_class(string $table): string
  * Пример для таблицы `app_subscribers`:
  * $entity = \Uru\BitrixIblockHelper\HLblock::compileEntity('app_subscribers');
  * $query = new Entity\Query($entity);
- *
- * @param string $table
- * @return Base
  */
 function highloadblock_entity(string $table): Base
 {
@@ -72,10 +59,7 @@ function highloadblock_entity(string $table): Base
 }
 
 /**
- * logger()->error('Error message here');
- *
- * @param string $name
- * @return Logger
+ * logger()->error('Error message here');.
  */
 function logger(string $name = 'common'): Logger
 {
@@ -83,8 +67,7 @@ function logger(string $name = 'common'): Logger
 }
 
 /**
- * @param int|null $id
- * @return User|bool
+ * @return bool|User
  */
 function user(?int $id = null)
 {
@@ -92,10 +75,7 @@ function user(?int $id = null)
 }
 
 /**
- * Получить объект работы с датой
- * @param string $date
- * @param string|null $format
- * @return DateTime
+ * Получить объект работы с датой.
  */
 function datetime(string $date, ?string $format = null): DateTime
 {
@@ -113,7 +93,6 @@ function datetime(string $date, ?string $format = null): DateTime
 
 /**
  * @param bool $midnight Получить не текущее время, а полночь
- * @return string
  */
 function date_format_full(bool $midnight = false): string
 {
@@ -131,18 +110,15 @@ function date_format_full(bool $midnight = false): string
     return $format;
 }
 
-/**
- * @return string
- */
 function date_format_short(): string
 {
     global $DB;
-    return $DB->DateFormatToPHP(CSite::GetDateFormat("SHORT"));
+
+    return $DB->DateFormatToPHP(CSite::GetDateFormat('SHORT'));
 }
 
 /**
  * @param bool $dateOnly Показывать только дату или еще и время
- * @return string
  */
 function date_format_filter(bool $dateOnly = false): string
 {

@@ -8,32 +8,26 @@ use App\Api\V2\Entities\Interfaces\UserEntityInterface;
 use App\Api\V2\Entities\UserEntity;
 use App\Api\V2\Repositories\Interfaces\ClaimRepositoryInterface;
 use App\Api\V2\Repositories\Interfaces\UserRepositoryInterface;
-use App\Models\Partner\PartnerStatus;
 use App\Models\User;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\ScopeEntityInterface;
 
 /**
- * Class UserRepository
- * @package App\Api\V2\Repositories
+ * Class UserRepository.
  */
 class UserRepository implements UserRepositoryInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function getUserEntityByUserCredentials($username, $password, $grantType, ClientEntityInterface $clientEntity)
+    public function getUserEntityByUserCredentials($username, $password, $grantType, ClientEntityInterface $clientEntity): ?UserEntity
     {
         $user = User::getByLogin($username);
         if ($user) {
             return $user->isUserPassword($password) ? (new UserEntity($user)) : null;
         }
+
         return null;
     }
 
     /**
-     * @param ClaimRepositoryInterface $claimRepository
-     * @param ScopeEntityInterface $scope
      * @return array|ClaimEntityInterface[]
      */
     public function getClaims(ClaimRepositoryInterface $claimRepository, ScopeEntityInterface $scope): array
@@ -41,15 +35,10 @@ class UserRepository implements UserRepositoryInterface
         return $claimRepository->getClaimsByScope($scope);
     }
 
-    /**
-     * @param $userEntity
-     * @param $claims
-     * @param $scopes
-     * @return array
-     */
     public function getAttributes($userEntity, $claims, $scopes): array
     {
         $user = $userEntity->isUserExist() ? $userEntity->getUser() : user();
+
         return [
             'id' => $user->getId(),
             'name' => $user->getName(),
@@ -58,17 +47,12 @@ class UserRepository implements UserRepositoryInterface
         ];
     }
 
-    /**
-     * @param UserEntityInterface $userEntity
-     * @param $claims
-     * @param $scopes
-     * @return array
-     */
     public function getUserInfoAttributes(UserEntityInterface $userEntity, $claims, $scopes): array
     {
         $user = $userEntity->isUserExist() ? $userEntity->getUser() : user();
         $accessToken = new AccessTokenEntity();
         $accessToken->setUsertype($user);
+
         return [
             'sub' => $user->getId(),
             'givenname' => $user->getName(),
@@ -79,17 +63,14 @@ class UserRepository implements UserRepositoryInterface
             'phone_number_verified' => false,
             'skype' => $user->getSkype(),
             'scopes' => $scopes,
-            'usertype' => $accessToken->getUsertype()
+            'usertype' => $accessToken->getUsertype(),
         ];
     }
 
-    /**
-     * @param $identifier
-     * @return UserEntityInterface
-     */
     public function getUserByIdentifier($identifier): UserEntityInterface
     {
         $user = user($identifier);
+
         return new UserEntity($user);
     }
 }

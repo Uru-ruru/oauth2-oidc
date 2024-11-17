@@ -3,25 +3,27 @@
 namespace App\Api\V2;
 
 /**
- * Class SessionInformation
- * @package App\Api\V2
+ * Class SessionInformation.
  */
 class SessionInformation
 {
-    /**
-     * @var
-     */
     public $acr;
-    /**
-     * @var
-     */
+
     public $amr;
-    /**
-     * @var
-     */
+
     public $azp;
 
     /**
+     * @throws \JsonException
+     */
+    public function __toString(): string
+    {
+        return $this->toJSON() ?: '';
+    }
+
+    /**
+     * @param mixed $json
+     *
      * @throws \JsonException
      */
     public static function fromJSON($json): SessionInformation
@@ -40,22 +42,13 @@ class SessionInformation
     /**
      * @throws \JsonException
      */
-    public function toJSON()
+    public function toJSON(): false|string
     {
         return json_encode(['acr' => $this->acr, 'amr' => $this->amr, 'azp' => $this->azp], JSON_THROW_ON_ERROR);
     }
 
     /**
-     * @throws \JsonException
-     */
-    public function __toString(): string
-    {
-        return $this->toJSON() ?: '';
-    }
-
-
-    /**
-     * Get the value of acr
+     * Get the value of acr.
      */
     public function getAcr()
     {
@@ -63,10 +56,9 @@ class SessionInformation
     }
 
     /**
-     * Set the value of acr
+     * Set the value of acr.
      *
-     * @param $acr
-     * @return  self
+     * @param mixed $acr
      */
     public function setAcr($acr): SessionInformation
     {
@@ -76,7 +68,7 @@ class SessionInformation
     }
 
     /**
-     * Get the value of amr
+     * Get the value of amr.
      */
     public function getAmr()
     {
@@ -84,10 +76,9 @@ class SessionInformation
     }
 
     /**
-     * Set the value of amr
+     * Set the value of amr.
      *
-     * @param $amr
-     * @return  self
+     * @param mixed $amr
      */
     public function setAmr($amr): SessionInformation
     {
@@ -97,7 +88,7 @@ class SessionInformation
     }
 
     /**
-     * Get the value of azp
+     * Get the value of azp.
      */
     public function getAzp()
     {
@@ -105,10 +96,9 @@ class SessionInformation
     }
 
     /**
-     * Set the value of azp
+     * Set the value of azp.
      *
-     * @param $azp
-     * @return  self
+     * @param mixed $azp
      */
     public function setAzp($azp): SessionInformation
     {
